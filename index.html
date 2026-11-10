@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Requisições HTTP - CrudCrud</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --bg: #F3F4F6;
+            --panel-bg: #FFFFFF;
+            --text: #1F2937;
+            --border: #E5E7EB;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .results-panel {
+            grid-column: 1 / -1;
+            background: #1F2937;
+            color: #10B981;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+
+        pre {
+            margin: 0;
+            font-family: monospace;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Teste de Requisições HTTP</h1>
+        <p>Utilizando a API gratuita do crudcrud.com</p>
+    </div>
+
+    <div class="container">
+        <!-- POST: Criar Produto -->
+        <div class="card">
+            <h2>1. POST (Criar)</h2>
+            <div class="form-group">
+                <label>Nome:</label>
+                <input type="text" id="post-nome" placeholder="Ex: Teclado Mecânico">
+            </div>
+            <div class="form-group">
+                <label>Preço:</label>
+                <input type="number" id="post-preco" placeholder="Ex: 250.00">
+            </div>
+            <div class="form-group">
+                <label>Descrição:</label>
+                <textarea id="post-desc" placeholder="Detalhes do produto..."></textarea>
+            </div>
+            <button onclick="criarProduto()">Enviar POST</button>
+        </div>
+
+        <!-- GET: Ler Produtos -->
+        <div class="card">
+            <h2>2. GET (Ler)</h2>
+            <button onclick="listarProdutos()" style="margin-bottom: 15px;">Listar Todos os Produtos</button>
+            
+            <div class="form-group">
+                <label>Ou buscar por ID específico:</label>
+                <input type="text" id="get-id" placeholder="ID do produto">
+            </div>
+            <button onclick="buscarPorId()">Buscar Produto</button>
+        </div>
+
+        <!-- PUT: Atualizar Tudo -->
+        <div class="card">
+            <h2>3. PUT (Atualizar Tudo)</h2>
+            <div class="form-group">
+                <label>ID do Produto:</label>
+                <input type="text" id="put-id" placeholder="ID existente">
+            </div>
+            <div class="form-group">
+                <label>Novo Nome:</label>
+                <input type="text" id="put-nome">
+            </div>
+            <div class="form-group">
+                <label>Novo Preço:</label>
+                <input type="number" id="put-preco">
+            </div>
+            <div class="form-group">
+                <label>Nova Descrição:</label>
+                <input type="text" id="put-desc">
+            </div>
+            <button onclick="atualizarTudo()">Enviar PUT</button>
+        </div>
+
+        <!-- PATCH: Atualizar Parcialmente -->
+        <div class="card">
+            <h2>4. PATCH (Atualização Parcial)</h2>
+            <p style="font-size: 0.8rem; color: #666;">Nota: Vamos atualizar apenas o preço.</p>
+            <div class="form-group">
+                <label>ID do Produto:</label>
+                <input type="text" id="patch-id" placeholder="ID existente">
+            </div>
+            <div class="form-group">
+                <label>Novo Preço:</label>
+                <input type="number" id="patch-preco">
+            </div>
+            <button onclick="atualizarParcial()">Enviar PATCH</button>
+        </div>
+
+        <!-- DELETE: Apagar Produto -->
+        <div class="card">
+            <h2>5. DELETE (Apagar)</h2>
+            <div class="form-group">
+                <label>ID do Produto:</label>
+                <input type="text" id="delete-id" placeholder="ID existente">
+            </div>
+            <button onclick="deletarProduto()" style="background-color: #EF4444;">Deletar Produto</button>
+        </div>
+
+        <!-- Console de Resultados -->
+        <div class="results-panel">
+            <h2 style="color: white; margin-top: 0;">Console de Resposta (JSON):</h2>
+            <pre id="console">Aguardando requisição...</pre>
+        </div>
+    </div>
+
+    <script>
+        // URL configurada com o seu ID do CrudCrud
+        const API_URL = 'https://crudcrud.com/api/91c5ce691ffb450aac5e951d8475224e/produtos';
+
+        // Função auxiliar para exibir resultados na tela
+        function mostrarResultado(dados, isError = false) {
+            const consoleEl = document.getElementById('console');
+            consoleEl.style.color = isError ? '#F87171' : '#10B981';
+            
+            if (typeof dados === 'object') {
+                consoleEl.textContent = JSON.stringify(dados, null, 2);
+            } else {
+                consoleEl.textContent = dados;
+            }
+        }
+
+        // Função auxiliar para tratar respostas vazias (comuns em PUT, PATCH, DELETE)
+        async function tratarResposta(response) {
+            if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+            
+            const texto = await response.text();
+            return texto ? JSON.parse(texto) : 'Sucesso! (Sem conteúdo retornado pela API)';
+        }
+
+        // 1. POST - Criar
+        async function criarProduto() {
+            mostrarResultado("Carregando...");
+            const produto = {
+                nome: document.getElementById('post-nome').value,
+                preco: Number(document.getElementById('post-preco').value),
+                descricao: document.getElementById('post-desc').value
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(produto)
+                });
+                const data = await tratarResposta(response);
+                mostrarResultado(data);
+            } catch (error) {
+                mostrarResultado(error.message, true);
+            }
+        }
+
+        // 2. GET - Listar Todos
+        async function listarProdutos() {
+            mostrarResultado("Carregando...");
+            try {
+                const response = await fetch(API_URL);
+                const data = await tratarResposta(response);
+                mostrarResultado(data);
+            } catch (error) {
+                mostrarResultado(error.message, true);
+            }
+        }
+
+        // 2. GET - Buscar por ID
+        async function buscarPorId() {
+            mostrarResultado("Carregando...");
+            const id = document.getElementById('get-id').value;
+            try {
+                const response = await fetch(`${API_URL}/${id}`);
+                const data = await tratarResposta(response);
+                mostrarResultado(data);
+            } catch (error) {
+                mostrarResultado(error.message, true);
+            }
+        }
+
+        // 3. PUT - Atualizar Todo o Objeto
+        async function atualizarTudo() {
+            mostrarResultado("Carregando...");
+            const id = document.getElementById('put-id').value;
+            const produtoAtualizado = {
+                nome: document.getElementById('put-nome').value,
+                preco: Number(document.getElementById('put-preco').value),
+                descricao: document.getElementById('put-desc').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(produtoAtualizado)
+                });
+                const data = await tratarResposta(response);
+                mostrarResultado(data);
+            } catch (error) {
+                mostrarResultado(error.message, true);
+            }
+        }
+
+        // 4. PATCH - Atualizar Parcialmente (apenas preço)
+        async function atualizarParcial() {
+            mostrarResultado("Carregando...");
+            const id = document.getElementById('patch-id').value;
+            const atualizacao = {
+                preco: Number(document.getElementById('patch-preco').value)
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(atualizacao)
+                });
+                const data = await tratarResposta(response);
+                mostrarResultado(data);
+            } catch (error) {
+                mostrarResultado(error.message + " (Nota: O CrudCrud nativamente pode não suportar PATCH, testando comportamento da API).", true);
+            }
+        }
+
+        // 5. DELETE - Apagar
+        async function deletarProduto() {
+            mostrarResultado("Carregando...");
+            const id = document.getElementById('delete-id').value;
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+                const data = await tratarResposta(response);
+                mostrarResultado(data);
+            } catch (error) {
+                mostrarResultado(error.message, true);
+            }
+        }
+    </script>
+</body>
+</html>
